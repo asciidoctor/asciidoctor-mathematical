@@ -12,7 +12,6 @@ class LibMathematical < Extensions::Treeprocessor
 
       stem_blocks.each do |math|
         equation_data = %($$#{math.content}$$)
-        puts equation_data
         equation_type = math.style.to_sym
         # FIXME auto-generate id if one is not provided
         if math.id
