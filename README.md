@@ -1,2 +1,2 @@
 # asciidoctor-lib-mathematics
-Example library implementation of Mathematics for Asciidoctor
+Library wrapper of [Mathematical](https://github.com/gjtorikian/mathematical) for Asciidoctor
