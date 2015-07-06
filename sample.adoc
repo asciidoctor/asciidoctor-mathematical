@@ -1,4 +1,5 @@
 = _Precompiled_ Math!
+:math:
 :imagesoutdir: generated-images
 
 [latexmath]

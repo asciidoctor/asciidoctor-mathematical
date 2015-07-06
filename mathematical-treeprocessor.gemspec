@@ -1,12 +1,12 @@
 Gem::Specification.new do |s|
   s.name        = 'mathematical-treeprocessor'
-  s.version     = '0.0.1'
+  s.version     = '0.0.3'
   s.date        = '2015-07-06'
   s.summary     = "Wrapper for Mathematical"
   s.description = "Converts latexmath equations in Asciidoctor to SVG"
   s.authors     = ["Tobias Stumm"]
   s.email       = 'tstumm@users.noreply.github.com'
-  s.files       = ["lib/mathematical-treeprocessor.rb"]
+  s.files       = ["lib/mathematical-treeprocessor.rb", "lib/mathematical-treeprocessor/extension.rb"]
   s.homepage    =
     'https://github.com/tstumm/mathematical-treeprocessor'
   s.license       = 'MIT'
