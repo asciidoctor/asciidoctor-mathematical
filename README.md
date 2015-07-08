@@ -1,4 +1,4 @@
-# mathematical-treeprocessor
+# asciidoctor-mathematical
 Library wrapper of [Mathematical](https://github.com/gjtorikian/mathematical) for Asciidoctor
 
 ## Dependencies

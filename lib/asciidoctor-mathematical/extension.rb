@@ -8,7 +8,7 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
   def process document
     if (stem_blocks = document.find_by context: :stem)
       # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
-      mathematical = ::Mathematical.new
+      mathematical = ::Mathematical.new({ :format => :png })
       image_output_dir = resolve_image_output_dir document
       image_target_dir = document.attr 'imagesoutdir', (document.attr 'imagesdir')
       image_target_dir = '.' if image_target_dir.nil_or_empty?
@@ -26,7 +26,7 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
 
         alt_text = stem.attr 'alt', equation_data
 
-        image_target = %(#{stem_id}.svg)
+        image_target = %(#{stem_id}.png)
         image_file = ::File.join image_output_dir, image_target
         image_target = ::File.join image_target_dir, image_target unless image_target_dir == '.'
 
