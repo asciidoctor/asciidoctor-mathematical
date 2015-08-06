@@ -17,9 +17,9 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
         end
       end
       image_postfix = ".#{format}"
-      scale = "100%"
+      scale = 1.0
       if format == :png
-        scale = "#{72.0/300.0*100}%"
+        scale = 72.0/300.0
       end
       ppi = 72.0
       if format == :png
@@ -52,7 +52,11 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
         result = mathematical.parse equation_data
         ::IO.write image_file, result[:data]
 
-        attrs = { 'target' => image_target, 'alt' => alt_text, 'align' => 'center', 'width' => scale}
+        attrs = { 'target' => image_target, 'alt' => alt_text, 'align' => 'center' }
+        if format == :png
+          attrs['width'] = "#{result[:width]}pt"
+          attrs['height'] = "#{result[:height]}pt"
+        end
         parent = stem.parent
         stem_image = create_image_block parent, attrs
         stem_image.id = stem.id if stem.id
