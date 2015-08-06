@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.description = "Converts latexmath equations in Asciidoctor to SVG"
   s.authors     = ["Tobias Stumm"]
   s.email       = 'tstumm@users.noreply.github.com'
-  s.files       = ["lib/asciidoctor-mathematical", "lib/asciidoctor-mathematical/extension.rb"]
+  s.files       = ["lib/asciidoctor-mathematical", "lib/asciidoctor-mathematical/extension.rb", "lib/asciidoctor-mathematical.rb"]
   s.homepage    =
     'https://github.com/tstumm/asciidoctor-mathematical'
   s.license       = 'MIT'

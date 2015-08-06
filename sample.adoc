@@ -3,8 +3,17 @@
 :imagesoutdir: generated-images
 
 ## Equations!
+
 [latexmath]
 ++++
 k_{n+1} = n^2 + k_n^2 - k_{n-1}
 ++++
+
 Some useful text!
+
+Formula for quadratic root:
+
+[latexmath]
+++++
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+++++

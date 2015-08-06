@@ -7,8 +7,26 @@ include ::Asciidoctor
 class MathematicalTreeprocessor < Extensions::Treeprocessor
   def process document
     if (stem_blocks = document.find_by context: :stem)
+      format = :png
+      if document.attributes['mathematical-format']
+        format_str = document.attributes['mathematical-format']
+        if format_str == 'png'
+          format = :png
+        elsif format_str == 'svg'
+          format = :svg
+        end
+      end
+      image_postfix = ".#{format}"
+      scale = "100%"
+      if format == :png
+        scale = "#{72.0/300.0*100}%"
+      end
+      ppi = 72.0
+      if format == :png
+        ppi = 300.0
+      end
       # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
-      mathematical = ::Mathematical.new({ :format => :png })
+      mathematical = ::Mathematical.new({ :format => format, :ppi => ppi })
       image_output_dir = resolve_image_output_dir document
       image_target_dir = document.attr 'imagesoutdir', (document.attr 'imagesdir')
       image_target_dir = '.' if image_target_dir.nil_or_empty?
@@ -26,7 +44,7 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
 
         alt_text = stem.attr 'alt', equation_data
 
-        image_target = %(#{stem_id}.png)
+        image_target = %(#{stem_id}#{image_postfix})
         image_file = ::File.join image_output_dir, image_target
         image_target = ::File.join image_target_dir, image_target unless image_target_dir == '.'
 
@@ -34,7 +52,7 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
         result = mathematical.parse equation_data
         ::IO.write image_file, result[:data]
 
-        attrs = { 'target' => image_target, 'alt' => alt_text, 'align' => 'center' }
+        attrs = { 'target' => image_target, 'alt' => alt_text, 'align' => 'center', 'width' => scale}
         parent = stem.parent
         stem_image = create_image_block parent, attrs
         stem_image.id = stem.id if stem.id
