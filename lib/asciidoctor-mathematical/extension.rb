@@ -80,3 +80,61 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
     doc.normalize_system_path images_dir, base_dir
   end
 end
+
+class MathematicalPreprocessor < Extensions::Preprocessor
+  LATEXMATH_PTN = /latexmath:\[([^\]]+)\]/
+  def process document, reader
+    # Setup image format information
+    format = :png
+    if document.attributes['mathematical-format']
+      format_str = document.attributes['mathematical-format']
+      if format_str == 'png'
+        format = :png
+      elsif format_str == 'svg'
+        format = :svg
+      end
+    end
+    image_postfix = ".#{format}"
+    scale = 1.0
+    if format == :png
+      scale = 72.0/300.0
+    end
+    ppi = 72.0
+    if format == :png
+      ppi = 300.0
+    end
+
+    # Since at preprocessing stage, we have no document attribute avaliable,
+    # so fix the image output dir to be simple.
+    image_output_dir = './images'
+    image_target_dir = './images'
+    ::FileUtils.mkdir_p image_output_dir unless ::File.directory? image_output_dir
+
+    mathematical = ::Mathematical.new({ :format => format, :ppi => ppi })
+
+    lines = reader.readlines
+    lines.each do |line|
+      md = LATEXMATH_PTN.match line
+      while md
+        stem_content = md[1]
+        equation_data = %($#{stem_content}$)
+        stem_id = %(stem-#{::Digest::MD5.hexdigest stem_content})
+
+        image_target = %(#{stem_id}#{image_postfix})
+        image_file = ::File.join image_output_dir, image_target
+        image_target = ::File.join image_target_dir, image_target unless image_target_dir == '.'
+
+        # TODO check for error
+        result = mathematical.parse equation_data
+        ::IO.write image_file, result[:data]
+
+        subst = %(image:#{image_target}[width=#{result[:width]}pt])
+        line.gsub! md[0], subst
+        md = LATEXMATH_PTN.match md.post_match
+      end
+    end
+
+    reader.unshift_lines lines
+    reader
+  end
+end
