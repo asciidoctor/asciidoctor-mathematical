@@ -1,5 +1,7 @@
-require 'asciidoctor/extensions' unless RUBY_ENGINE == 'opal'
+require 'asciidoctor'
+require 'asciidoctor/extensions'
 require 'mathematical'
+
 autoload :Digest, 'digest'
 
 include ::Asciidoctor
@@ -83,6 +85,22 @@ end
 
 class MathematicalPreprocessor < Extensions::Preprocessor
   LATEXMATH_PTN = /latexmath:\[([^\]]+)\]/
+
+  SPECIAL_CHARS = {
+    '&' => '&amp;',
+    '<' => '&lt;',
+    '>' => '&gt;'
+  }
+
+  SPECIAL_CHARS_PATTERN = /[#{SPECIAL_CHARS.keys.join}]/
+
+  # FIXME: I don't understand why I can not simply use sub_specialchars from
+  # Asciidoctor. It just crashes with 'unknown method name'. So I copy the
+  # code here.
+  def sub_specialchars text
+    text.gsub(SPECIAL_CHARS_PATTERN, SPECIAL_CHARS)
+  end
+
   def process document, reader
     # Setup image format information
     format = :png
@@ -117,6 +135,9 @@ class MathematicalPreprocessor < Extensions::Preprocessor
       md = LATEXMATH_PTN.match line
       while md
         stem_content = md[1]
+        # NOTE: It seems that we need to escape '<>&' to make mathematical
+        # work. This is wired but verified. So we escape them here.
+        stem_content = sub_specialchars stem_content
         equation_data = %($#{stem_content}$)
         stem_id = %(stem-#{::Digest::MD5.hexdigest stem_content})
 
