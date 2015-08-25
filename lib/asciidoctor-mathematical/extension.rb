@@ -136,7 +136,7 @@ class MathematicalPreprocessor < Extensions::Preprocessor
       while md
         stem_content = md[1]
         # NOTE: It seems that we need to escape '<>&' to make mathematical
-        # work. This is wired but verified. So we escape them here.
+        # work. This is weired but verified. So we escape them here.
         stem_content = sub_specialchars stem_content
         equation_data = %($#{stem_content}$)
         stem_id = %(stem-#{::Digest::MD5.hexdigest stem_content})
