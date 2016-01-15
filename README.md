@@ -31,3 +31,6 @@ If you experience any compilation errors (caused by Mathematical) try running:
 ## Installation
 asciidoctor-mathematical is now available on RubyGems.
 Installation is done by `gem install asciidoctor-mathematical`.
+
+## Usage
+`asciidoctor-pdf -r asciidoctor-mathematical -o test.pdf sample.adoc`
