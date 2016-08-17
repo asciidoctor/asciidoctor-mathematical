@@ -1,43 +1,32 @@
-require 'asciidoctor'
 require 'asciidoctor/extensions'
-require 'mathematical'
 
 autoload :Digest, 'digest'
+autoload :Mathematical, 'mathematical'
 
-include ::Asciidoctor
+class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
+  LineFeed = %(\n)
+  StemInlineMacroRx = /\\?(?:stem|latexmath):([a-z,]*)\[(.*?[^\\])\]/m
+  LatexmathInlineMacroRx = /\\?latexmath:([a-z,]*)\[(.*?[^\\])\]/m
 
-class MathematicalTreeprocessor < Extensions::Treeprocessor
   def process document
-    if (stem_blocks = document.find_by context: :stem)
-      format = :png
-      if document.attributes['mathematical-format']
-        format_str = document.attributes['mathematical-format']
-        if format_str == 'png'
-          format = :png
-        elsif format_str == 'svg'
-          format = :svg
-        end
-      end
-      image_postfix = ".#{format}"
-      scale = 1.0
-      if format == :png
-        scale = 72.0/300.0
-      end
-      ppi = 72.0
-      if format == :png
-        ppi = 300.0
-      end
-      # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
-      mathematical = ::Mathematical.new({ :format => format, :ppi => ppi })
-      image_output_dir = resolve_image_output_dir document
-      image_target_dir = document.attr 'imagesoutdir', (document.attr 'imagesdir')
-      image_target_dir = '.' if image_target_dir.nil_or_empty?
-      ::FileUtils.mkdir_p image_output_dir unless ::File.directory? image_output_dir
+    to_html = document.basebackend? 'html'
+    format = ((document.attr 'mathematical-format') || 'png').to_sym
+    image_ext = %(.#{format})
+    scale = format == :png ? 72.0/300.0 : 1.0
+    ppi = format == :png ? 300.0 : 72.0
+    # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
+    mathematical = ::Mathematical.new format: format, ppi: ppi
+    image_output_dir = resolve_image_output_dir document
+    image_target_dir = document.attr 'imagesoutdir', (document.attr 'imagesdir')
+    image_target_dir = '.' if image_target_dir.nil_or_empty?
+
+    unless (stem_blocks = document.find_by context: :stem).nil_or_empty?
+      ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
 
       stem_blocks.each do |stem|
-        equation_data = %($$#{stem.content}$$)
         equation_type = stem.style.to_sym
         next unless equation_type == :latexmath
+        equation_data = %($$#{stem.content}$$)
 
         # FIXME auto-generate id if one is not provided
         unless (stem_id = stem.id)
@@ -46,7 +35,7 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
 
         alt_text = stem.attr 'alt', equation_data
 
-        image_target = %(#{stem_id}#{image_postfix})
+        image_target = %(#{stem_id}#{image_ext})
         image_file = ::File.join image_output_dir, image_target
         image_target = ::File.join image_target_dir, image_target unless image_target_dir == '.'
 
@@ -56,8 +45,8 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
 
         attrs = { 'target' => image_target, 'alt' => alt_text, 'align' => 'center' }
         if format == :png
-          attrs['width'] = "#{result[:width]}pt"
-          attrs['height'] = "#{result[:height]}pt"
+          attrs['width'] = %(#{result[:width]}pt)
+          attrs['height'] = %(#{result[:height]}pt)
         end
         parent = stem.parent
         stem_image = create_image_block parent, attrs
@@ -68,6 +57,47 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
         parent.blocks[parent.blocks.index stem] = stem_image
       end
     end
+
+    unless (simple_blocks = document.find_by {|b| b.content_model == :simple && (b.subs.include? :macros) }).nil_or_empty?
+      support_stem_prefix = document.attr? 'stem', 'latexmath'
+      ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
+      stem_rx = support_stem_prefix ? StemInlineMacroRx : LatexmathInlineMacroRx
+
+      simple_blocks.each do |block|
+        source_modified = false
+        source = block.lines * LineFeed
+        # TODO skip passthroughs in the source (e.g., +stem:[x^2]+)
+        source.gsub!(stem_rx) {
+          if (m = $~)[0].start_with? '\\'
+            next m[0][1..-1]
+          end
+
+          if (eq_data = m[2].rstrip).empty?
+            next
+          else
+            source_modified = true
+          end
+
+          eq_data.gsub! '\]', ']'
+          subs = m[1].nil_or_empty? ? (to_html ? [:specialcharacters] : []) : (block.resolve_pass_subs m[1])
+          eq_data = block.apply_subs eq_data, subs unless subs.empty?
+
+          eq_id = %(stem-#{::Digest::MD5.hexdigest eq_data})
+          eq_input = %($#{eq_data}$)
+
+          img_target = %(#{eq_id}#{image_ext})
+          img_file = ::File.join image_output_dir, img_target
+          img_target = ::File.join image_target_dir, img_target unless image_target_dir == '.'
+
+          eq_result = mathematical.parse eq_input
+
+          ::IO.write img_file, eq_result[:data]
+          %(image:#{img_target}[width=#{eq_result[:width]}])
+        } if (source.include? ':') && ((support_stem_prefix && (source.include? 'stem:')) || (source.include? 'latexmath:'))
+        block.lines = source.split LineFeed if source_modified
+      end
+    end
+
     nil
   end
 
@@ -80,82 +110,5 @@ class MathematicalTreeprocessor < Extensions::Treeprocessor
     end
 
     doc.normalize_system_path images_dir, base_dir
-  end
-end
-
-class MathematicalPreprocessor < Extensions::Preprocessor
-  LATEXMATH_PTN = /latexmath:\[([^\]]+)\]/
-
-  SPECIAL_CHARS = {
-    '&' => '&amp;',
-    '<' => '&lt;',
-    '>' => '&gt;'
-  }
-
-  SPECIAL_CHARS_PATTERN = /[#{SPECIAL_CHARS.keys.join}]/
-
-  # FIXME: I don't understand why I can not simply use sub_specialchars from
-  # Asciidoctor. It just crashes with 'unknown method name'. So I copy the
-  # code here.
-  def sub_specialchars text
-    text.gsub(SPECIAL_CHARS_PATTERN, SPECIAL_CHARS)
-  end
-
-  def process document, reader
-    # Setup image format information
-    format = :png
-    if document.attributes['mathematical-format']
-      format_str = document.attributes['mathematical-format']
-      if format_str == 'png'
-        format = :png
-      elsif format_str == 'svg'
-        format = :svg
-      end
-    end
-    image_postfix = ".#{format}"
-    scale = 1.0
-    if format == :png
-      scale = 72.0/300.0
-    end
-    ppi = 72.0
-    if format == :png
-      ppi = 300.0
-    end
-
-    # Since at preprocessing stage, we have no document attribute avaliable,
-    # so fix the image output dir to be simple.
-    image_output_dir = './images'
-    image_target_dir = './images'
-    ::FileUtils.mkdir_p image_output_dir unless ::File.directory? image_output_dir
-
-    mathematical = ::Mathematical.new({ :format => format, :ppi => ppi })
-
-    lines = reader.readlines
-    lines.each do |line|
-      md = LATEXMATH_PTN.match line
-      while md
-        stem_content = md[1]
-        # NOTE: It seems that we need to escape '<>&' to make mathematical
-        # work. This is weired but verified. So we escape them here.
-        stem_content = sub_specialchars stem_content
-        equation_data = %($#{stem_content}$)
-        stem_id = %(stem-#{::Digest::MD5.hexdigest stem_content})
-
-        image_target = %(#{stem_id}#{image_postfix})
-        image_file = ::File.join image_output_dir, image_target
-        image_target = ::File.join image_target_dir, image_target unless image_target_dir == '.'
-
-        # TODO check for error
-        result = mathematical.parse equation_data
-        ::IO.write image_file, result[:data]
-
-        subst = %(image:#{image_target}[width=#{result[:width]}pt])
-        line.gsub! md[0], subst
-        md = LATEXMATH_PTN.match md.post_match
-      end
-    end
-
-    reader.unshift_lines lines
-    reader
   end
 end
