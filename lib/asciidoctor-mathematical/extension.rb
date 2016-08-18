@@ -58,14 +58,16 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
       end
     end
 
-    unless (simple_blocks = document.find_by {|b| b.content_model == :simple && (b.subs.include? :macros) }).nil_or_empty?
+    unless (prose_blocks = document.find_by {|b|
+          (b.content_model == :simple && (b.subs.include? :macros)) || b.context == :list_item
+        }).nil_or_empty?
       support_stem_prefix = document.attr? 'stem', 'latexmath'
       ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
       stem_rx = support_stem_prefix ? StemInlineMacroRx : LatexmathInlineMacroRx
 
-      simple_blocks.each do |block|
+      prose_blocks.each do |block|
         source_modified = false
-        source = block.lines * LineFeed
+        source = block.context == :list_item ? (block.instance_variable_get :@text) : (block.lines * LineFeed)
         # TODO skip passthroughs in the source (e.g., +stem:[x^2]+)
         source.gsub!(stem_rx) {
           if (m = $~)[0].start_with? '\\'
@@ -94,7 +96,14 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
           ::IO.write img_file, eq_result[:data]
           %(image:#{img_target}[width=#{eq_result[:width]}])
         } if (source.include? ':') && ((support_stem_prefix && (source.include? 'stem:')) || (source.include? 'latexmath:'))
-        block.lines = source.split LineFeed if source_modified
+
+        if source_modified
+          if block.context == :list_item
+            block.instance_variable_set :@text, source
+          else
+            block.lines = source.split LineFeed
+          end
+        end
       end
     end
 
