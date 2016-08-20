@@ -44,8 +44,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
         attrs = { 'target' => image_target, 'alt' => alt_text, 'align' => 'center' }
         if format == :png
-          attrs['width'] = %(#{result[:width]}pt)
-          attrs['height'] = %(#{result[:height]}pt)
+          attrs['width'] = %(#{result[:width]})
         end
         parent = stem.parent
         stem_image = create_image_block parent, attrs
