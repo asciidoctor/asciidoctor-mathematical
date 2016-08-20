@@ -1,6 +1,7 @@
 = _Precompiled_ Math!
 :math:
-:imagesoutdir: images
+:imagesoutdir: generated_images
+:imagesdir: images
 
 ## Equations!
 
