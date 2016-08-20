@@ -2,6 +2,7 @@
 :math:
 :imagesoutdir: generated_images
 :imagesdir: images
+:stem: latexmath
 
 ## Equations!
 
@@ -12,9 +13,10 @@ k_{n+1} = n^2 + k_n^2 - k_{n-1}
 
 Some useful text! Formula for quadratic root:
 
-[latexmath]
+[stem]
 ++++
 x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
 ++++
 
-Inline equation works too! latexmath:[a^2+b^2=c^2]. Pretty nice, huh?
+Inline equation works too! latexmath:[a^2+b^2=c^2]. Or as stem
+stem:[a^2+b^2=c^2]. Pretty nice, huh?
