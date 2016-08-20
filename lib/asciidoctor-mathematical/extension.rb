@@ -49,6 +49,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
         attrs = { 'target' => image_target, 'alt' => alt_text, 'align' => 'center' }
         if format == :png
           attrs['width'] = %(#{result[:width]})
+          attrs['height'] = %(#{result[:height]})
         end
         parent = stem.parent
         stem_image = create_image_block parent, attrs
@@ -96,7 +97,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
           eq_result = mathematical.parse eq_input
 
           ::IO.write img_file, eq_result[:data]
-          %(image:#{img_target}[width=#{eq_result[:width]}])
+          %(image:#{img_target}[width=#{eq_result[:width]},height=#{eq_result[:height]}])
         } if (source.include? ':') && ((support_stem_prefix && (source.include? 'stem:')) || (source.include? 'latexmath:'))
 
         if source_modified
