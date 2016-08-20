@@ -133,7 +133,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
       base_dir = parent.attr('outdir') || (document.respond_to?(:options) && document.options[:to_dir])
       output_dir = parent.attr('imagesdir')
       # since we store images directly to imagesdir, target dir shall be NULL and asciidoctor converters will prefix imagesdir.
-      target_dir = nil
+      target_dir = "."
     end
 
     output_dir = parent.normalize_system_path(output_dir, base_dir)
