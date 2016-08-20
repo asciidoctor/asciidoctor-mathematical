@@ -12,9 +12,13 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
   def process document
     to_html = document.basebackend? 'html'
     format = ((document.attr 'mathematical-format') || 'png').to_sym
+    if format != :png and format != :svg
+      warn %(Unknown format '#{format}', retreat to 'png')
+      format = :png
+    end
     image_ext = %(.#{format})
-    scale = format == :png ? 72.0/300.0 : 1.0
-    ppi = format == :png ? 300.0 : 72.0
+    ppi = ((document.attr 'mathematical-ppi') || '300.0').to_f
+    ppi = format == :png ? ppi : 72.0
     # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
     mathematical = ::Mathematical.new format: format, ppi: ppi
     image_output_dir, image_target_dir = image_output_and_target_dir document
