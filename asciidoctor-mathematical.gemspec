@@ -6,8 +6,8 @@ Gem::Specification.new do |s|
   s.name        = 'asciidoctor-mathematical'
   s.version     = Asciidoctor::Mathematical::VERSION
   s.date        = '2016-08-21'
-  s.summary     = "Wrapper for Mathematical"
-  s.description = "Converts latexmath equations in Asciidoctor to SVG"
+  s.summary     = "Asciidoctor STEM processor based on Mathematical"
+  s.description = "An Asciidoctor extension to converts latexmath equations to SVG or PNGs"
   s.authors     = ["Tobias Stumm", "Zhang Yang", "Dan Allen"]
   s.email       = 'tstumm@users.noreply.github.com'
   s.files       = ["lib/asciidoctor-mathematical", "lib/asciidoctor-mathematical/extension.rb", "lib/asciidoctor-mathematical.rb"]
