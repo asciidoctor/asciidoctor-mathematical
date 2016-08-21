@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
   s.name        = 'asciidoctor-mathematical'
-  s.version     = '0.0.5'
-  s.date        = '2015-09-22'
+  s.version     = '0.1.0.dev'
+  s.date        = '2016-08-21'
   s.summary     = "Wrapper for Mathematical"
   s.description = "Converts latexmath equations in Asciidoctor to SVG"
-  s.authors     = ["Tobias Stumm", "Zhang Yang"]
+  s.authors     = ["Tobias Stumm", "Zhang Yang", "Dan Allen"]
   s.email       = 'tstumm@users.noreply.github.com'
   s.files       = ["lib/asciidoctor-mathematical", "lib/asciidoctor-mathematical/extension.rb", "lib/asciidoctor-mathematical.rb"]
   s.homepage    =
