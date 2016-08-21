@@ -1,6 +1,10 @@
+# -*- encoding: utf-8 -*-
+require File.expand_path('lib/asciidoctor-mathematical/version',
+                         File.dirname(__FILE__))
+
 Gem::Specification.new do |s|
   s.name        = 'asciidoctor-mathematical'
-  s.version     = '0.1.0.dev'
+  s.version     = Asciidoctor::Mathematical::VERSION
   s.date        = '2016-08-21'
   s.summary     = "Wrapper for Mathematical"
   s.description = "Converts latexmath equations in Asciidoctor to SVG"
