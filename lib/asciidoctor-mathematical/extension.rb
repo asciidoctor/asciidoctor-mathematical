@@ -98,7 +98,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
           ::IO.write img_file, eq_result[:data]
           %(image:#{img_target}[width=#{eq_result[:width]},height=#{eq_result[:height]}])
-        } if (source.include? ':') && ((support_stem_prefix && (source.include? 'stem:')) || (source.include? 'latexmath:'))
+        } if (source != nil) && (source.include? ':') && ((support_stem_prefix && (source.include? 'stem:')) || (source.include? 'latexmath:'))
 
         if source_modified
           if block.context == :list_item
