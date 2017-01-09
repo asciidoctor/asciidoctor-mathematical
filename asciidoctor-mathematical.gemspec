@@ -5,7 +5,7 @@ require File.expand_path('lib/asciidoctor-mathematical/version',
 Gem::Specification.new do |s|
   s.name        = 'asciidoctor-mathematical'
   s.version     = Asciidoctor::Mathematical::VERSION
-  s.date        = '2016-08-21'
+  s.date        = '2017-01-09'
   s.summary     = "Asciidoctor STEM processor based on Mathematical"
   s.description = "An Asciidoctor extension to converts latexmath equations to SVG or PNGs"
   s.authors     = ["Tobias Stumm", "Zhang Yang", "Dan Allen"]
