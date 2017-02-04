@@ -53,3 +53,16 @@ If you experience any compilation errors (caused by Mathematical) try running:
 #### Ubuntu
 `sudo apt-get -qq -y install bison flex libffi-dev libxml2-dev libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev ttf-lyx`
 
+### Trouble Shooting
+
+The `mathematical` gem, which is a hard dependency of
+`asciidoctor-mathematical`, may fail to build because of its over-writing of
+`strdup`. Whether it fail depends on the system. In case it fails, use the
+following command to install `mathematical` (see
+[gjtorikian/mathematical#64](https://github.com/gjtorikian/mathematical/issues/64)
+for the details):
+
+```
+MATHEMATICAL_SKIP_STRDUP=1 gem install mathematical
+```
+
