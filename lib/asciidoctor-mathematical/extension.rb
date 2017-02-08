@@ -110,6 +110,20 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
       end
     end
 
+    # handle table cells of the "asciidoc" type, as suggested by mojavelinux
+    # at asciidoctor/asciidoctor-mathematical#20.
+    unless (table_blocks = document.find_by context: :table).nil_or_empty?
+      table_blocks.each do |table|
+        (table.rows[:body] + table.rows[:foot]).each do |row|
+          row.each do |cell|
+            if cell.style == :asciidoc
+              process cell.inner_document
+            end
+          end
+        end
+      end
+    end
+
     nil
   end
 

@@ -4,7 +4,7 @@
 :imagesdir: images
 :stem: latexmath
 
-## Equations!
+== Equations!
 
 [latexmath]
 ++++
@@ -20,3 +20,24 @@ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
 
 Inline equation works too! latexmath:[a^2+b^2=c^2]. Or as stem
 stem:[a^2+b^2=c^2]. Pretty nice, huh?
+
+== Equations in table cells
+
+Equations in asciidoc style table cells work, too!
+
+[%header]
+|===
+| Demo | Contents
+| Inline Equation
+a|
+
+This is an *inline* equation: latexmath:[a^2+b^2=c^2].
+
+| Block Equation
+a| The following is a stem block:
+[stem]
+++++
+a^2+b^2=c^2+d^2
+++++
+
+|===
