@@ -40,4 +40,25 @@ a| The following is a stem block:
 a^2+b^2=c^2+d^2
 ++++
 
+| Inline Equation in *Normal* Cell
+| This is an *inline* equation: latexmath:[a^2+b^2=c^2].
+
+| Inline Equation in *Header* Cell
+h| This is an *inline* equation: latexmath:[a^2+b^2=c^2].
+
+| Inline Equation in *Emphasis* Cell
+e| This is an *inline* equation: latexmath:[a^2+b^2=c^2].
+
+| Inline Equation in *Monospaced* Cell
+m| This is an *inline* equation: latexmath:[a^2+b^2=c^2].
+
+| Inline Equation in *Strong* Cell
+s| This is an *inline* equation: latexmath:[a^2+b^2=c^2].
+
+| Inline Equation in *Verse* Cell
+v| This is an *inline* equation: latexmath:[a^2+b^2=c^2].
+
+| Inline Equation in *Literal* Cell
+l| This is an *inline* equation: latexmath:[a^2+b^2=c^2].
+
 |===

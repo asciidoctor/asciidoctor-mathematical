@@ -45,6 +45,8 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
           row.each do |cell|
             if cell.style == :asciidoc
               process cell.inner_document
+            elsif cell.style != :literal
+              handle_nonasciidoc_table_cell cell, mathematical, image_output_dir, image_target_dir, format
             end
           end
         end
@@ -77,15 +79,34 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
   end
 
   def handle_prose_block(prose, mathematical, image_output_dir, image_target_dir, format)
-    document = prose.document
+    text = prose.context == :list_item ? (prose.instance_variable_get :@text) : (prose.lines * LineFeed)
+    text, source_modified = handle_inline_stem prose, text, mathematical, image_output_dir, image_target_dir, format
+    if source_modified
+      if prose.context == :list_item
+        prose.instance_variable_set :@text, text
+      else
+        prose.lines = text.split LineFeed
+      end
+    end
+  end
+
+  def handle_nonasciidoc_table_cell(cell, mathematical, image_output_dir, image_target_dir, format)
+    text = cell.instance_variable_get :@text
+    text, source_modified = handle_inline_stem cell, text, mathematical, image_output_dir, image_target_dir, format
+    if source_modified
+      cell.instance_variable_set :@text, text
+    end
+  end
+
+  def handle_inline_stem(node, text, mathematical, image_output_dir, image_target_dir, format)
+    document = node.document
     to_html = document.basebackend? 'html'
     support_stem_prefix = document.attr? 'stem', 'latexmath'
     stem_rx = support_stem_prefix ? StemInlineMacroRx : LatexmathInlineMacroRx
 
     source_modified = false
-    source = prose.context == :list_item ? (prose.instance_variable_get :@text) : (prose.lines * LineFeed)
     # TODO skip passthroughs in the source (e.g., +stem:[x^2]+)
-    source.gsub!(stem_rx) {
+    text.gsub!(stem_rx) {
       if (m = $~)[0].start_with? '\\'
         next m[0][1..-1]
       end
@@ -97,19 +118,13 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
       end
 
       eq_data.gsub! '\]', ']'
-      subs = m[1].nil_or_empty? ? (to_html ? [:specialcharacters] : []) : (block.resolve_pass_subs m[1])
-      eq_data = prose.apply_subs eq_data, subs unless subs.empty?
+      subs = m[1].nil_or_empty? ? (to_html ? [:specialcharacters] : []) : (node.resolve_pass_subs m[1])
+      eq_data = node.apply_subs eq_data, subs unless subs.empty?
       img_target, img_width, img_height = make_equ_image eq_data, nil, true, mathematical, image_output_dir, image_target_dir, format
       %(image:#{img_target}[width=#{img_width},height=#{img_height}])
-    } if (source != nil) && (source.include? ':') && ((support_stem_prefix && (source.include? 'stem:')) || (source.include? 'latexmath:'))
+    } if (text != nil) && (text.include? ':') && ((support_stem_prefix && (text.include? 'stem:')) || (text.include? 'latexmath:'))
 
-    if source_modified
-      if prose.context == :list_item
-        prose.instance_variable_set :@text, source
-      else
-        prose.lines = source.split LineFeed
-      end
-    end
+    [text, source_modified]
   end
 
   def make_equ_image(equ_data, equ_id, equ_inline, mathematical, image_output_dir, image_target_dir, format)
