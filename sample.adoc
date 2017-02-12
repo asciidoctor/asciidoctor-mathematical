@@ -62,3 +62,9 @@ v| This is an *inline* equation: latexmath:[a^2+b^2=c^2].
 l| This is an *inline* equation: latexmath:[a^2+b^2=c^2].
 
 |===
+
+== Equations in section titles
+
+=== Proof of stem:[a^2+b^2=c^2]
+
+==== Proof of stem:[a^2+b^2=c^2]

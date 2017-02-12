@@ -20,9 +20,9 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
     mathematical = ::Mathematical.new format: format, ppi: ppi
     image_output_dir, image_target_dir = image_output_and_target_dir document
+    ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
 
     unless (stem_blocks = document.find_by context: :stem).nil_or_empty?
-      ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
       stem_blocks.each do |stem|
         handle_stem_block stem, mathematical, image_output_dir, image_target_dir, format
       end
@@ -31,7 +31,6 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     unless (prose_blocks = document.find_by {|b|
           (b.content_model == :simple && (b.subs.include? :macros)) || b.context == :list_item
         }).nil_or_empty?
-      ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
       prose_blocks.each do |prose|
         handle_prose_block prose, mathematical, image_output_dir, image_target_dir, format
       end
@@ -50,6 +49,12 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
             end
           end
         end
+      end
+    end
+
+    unless (sect_blocks = document.find_by content: :section).nil_or_empty?
+      sect_blocks.each do |sect|
+        handle_section_title sect, mathematical, image_output_dir, image_target_dir, format
       end
     end
 
@@ -95,6 +100,15 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     text, source_modified = handle_inline_stem cell, text, mathematical, image_output_dir, image_target_dir, format
     if source_modified
       cell.instance_variable_set :@text, text
+    end
+  end
+
+  def handle_section_title(sect, mathematical, image_output_dir, image_target_dir, format)
+    text = sect.instance_variable_get :@title
+    text, source_modified = handle_inline_stem sect, text, mathematical, image_output_dir, image_target_dir, format
+    if source_modified
+      sect.instance_variable_set :@title, text
+      sect.remove_instance_variable :@subbed_title
     end
   end
 
