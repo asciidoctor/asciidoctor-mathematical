@@ -8,16 +8,17 @@ asciidoctor-mathematical processes `latexmath` and `stem` blocks and inline
 macros and replaces them with generated SVG or PNG images, thus enables `stem`
 contents on a much wider range of asciidoctor backends. Currently, it is
 tested to works well with the html, docbook, pdf and latex backends. For
-`stem` blocks and macros, only the `latexmath` type is supported. 
+`stem` blocks and macros, only the `latexmath` type is supported.
 
 ### Package Specific Attributes
 
 These attributes can be set to tweak behaviors of this package:
 
-| attribute           | description                                       | valid values        | default value |
-| ---------           | -----------                                       | -------------       | ------------- |
-| mathematical-format | format of generated images                        | svg, png            | png           |
-| mathematical-ppi    | ppi of generated images, only valid for png files | any positive number | 300.0         |
+| attribute           | description                                                           | valid values        | default value |
+| ---------           | -----------                                                           | -------------       | ------------- |
+| mathematical-format | format of generated images                                            | svg, png            | png           |
+| mathematical-ppi    | ppi of generated images, only valid for png files                     | any positive number | 300.0         |
+| mathematical-inline | if present will inline equations as svg (only useful for HTML output) | true/false          | false         |
 
 ## Usage
 `asciidoctor-pdf -r asciidoctor-mathematical -o test.pdf sample.adoc`
