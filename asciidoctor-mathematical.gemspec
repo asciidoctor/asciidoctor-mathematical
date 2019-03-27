@@ -16,5 +16,5 @@ Gem::Specification.new do |s|
   s.license       = 'MIT'
   s.add_dependency 'ruby-enum', '~> 0.4'
   s.add_runtime_dependency 'mathematical', '~> 1.5', '>= 1.5.8'
-  s.add_runtime_dependency "asciidoctor", '~> 1.5', '>= 1.5.0'
+  s.add_runtime_dependency "asciidoctor", '~> 2.0', '>= 2.0.0'
 end
