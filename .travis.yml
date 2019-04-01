@@ -8,8 +8,6 @@ rvm:
 - 2.5.5
 - 2.4.5
 - 2.3.8
-- jruby-9.2.6.0
-- jruby-9.1.17.0
 before_install:
     - sudo apt-get update
     - sudo apt-get -qq -y install bison flex libffi-dev libxml2-dev libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev fonts-lyx
