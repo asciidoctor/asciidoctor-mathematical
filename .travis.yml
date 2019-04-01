@@ -1,0 +1,22 @@
+dist: trusty
+git:
+  # use depth 2 just in case two refs get pushed at once (like a tag)
+  depth: 2
+language: ruby
+rvm:
+- &release_ruby 2.6.2
+- 2.5.5
+- 2.4.5
+- 2.3.8
+before_install:
+    - sudo apt-get update
+    - sudo apt-get -qq -y install bison flex libffi-dev libxml2-dev libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev fonts-lyx
+script: bundle exec rake
+deploy:
+  provider: rubygems
+  gem: asciidoctor-mathematical
+  api_key: ${RUBYGEMS_API_KEY}
+  on:
+    tags: true
+    repo: asciidoctor/asciidoctor-mathematical
+    rvm: *release_ruby
