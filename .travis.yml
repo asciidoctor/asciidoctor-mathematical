@@ -13,8 +13,7 @@ rvm:
 before_install:
     - sudo apt-get update
     - sudo apt-get -qq -y install bison flex libffi-dev libxml2-dev libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev fonts-lyx
-script: bundle exec rake coverage test:all
-after_success: bundle exec rake build:dependents
+script: bundle exec rake
 deploy:
   provider: rubygems
   gem: asciidoctor-mathematical
