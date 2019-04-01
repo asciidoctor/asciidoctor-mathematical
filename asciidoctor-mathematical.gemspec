@@ -17,4 +17,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'ruby-enum', '~> 0.4'
   s.add_runtime_dependency 'mathematical', '~> 1.5', '>= 1.5.8'
   s.add_runtime_dependency "asciidoctor", '~> 2.0', '>= 2.0.0'
+  s.add_development_dependency 'rake', '~> 12.3.0'
 end
