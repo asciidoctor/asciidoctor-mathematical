@@ -132,7 +132,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
     source_modified = false
     # TODO skip passthroughs in the source (e.g., +stem:[x^2]+)
-    text.gsub!(stem_rx) {
+    text = text.gsub(stem_rx) {
       if (m = $~)[0].start_with? '\\'
         next m[0][1..-1]
       end
