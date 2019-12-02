@@ -190,7 +190,8 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
       else
         # When imagesdir attribute is set, every relative path is prefixed with it. So the real target dir shall then be relative to the imagesdir, instead of being relative to document root.
         doc_outdir = parent.attr('outdir') || (document.respond_to?(:options) && document.options[:to_dir])
-        abs_imagesdir = parent.normalize_system_path(parent.attr('imagesdir'), doc_outdir)
+        rel_imagesdir = File::join(parent.attr('docdir'), parent.attr('imagesdir'))
+        abs_imagesdir = parent.normalize_system_path(rel_imagesdir, doc_outdir)
         abs_outdir = parent.normalize_system_path(output_dir, base_dir)
         p1 = ::Pathname.new abs_outdir
         p2 = ::Pathname.new abs_imagesdir
