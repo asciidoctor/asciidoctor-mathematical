@@ -35,7 +35,7 @@ cmex10 and cmsy10. They are provided by the lyx-fonts package in fedora, and the
 fonts-lyx (or previously ttf-lyx) package in debian/ubuntu. In Arch Linux you can
 install the [ttf-computer-modern-fonts](https://aur.archlinux.org/packages/ttf-computer-modern-fonts/)
 package from AUR, you also have the [lyx](https://www.archlinux.org/packages/extra/x86_64/lyx/)
-package in `extra` repo though; both are providing required Computer Modern fonts.
+package in _extra_ repo though; both are providing required Computer Modern fonts.
 
 #### OS X
 Make sure you `brew install glib gdk-pixbuf cairo pango cmake`
