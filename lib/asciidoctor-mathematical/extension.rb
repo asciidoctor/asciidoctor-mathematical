@@ -181,31 +181,53 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
   def image_output_and_target_dir(parent)
     document = parent.document
+    doc_dir = parent.attr('docdir')
+    images_dir = parent.attr('imagesdir')
+    images_out_dir = parent.attr('imagesoutdir')
 
-    output_dir = parent.attr('imagesoutdir')
-    if output_dir
+    # if images_dir
+    #   # Relative images paths in the document are resolved relative to the
+    #   # value of the imagesdir attribute (at the time the converter runs).
+    #   if images_out_dir
+    #     # Find images_out_dir relative to images_dir
+    #   else
+    #     # Absolute path of images_out_dir
+    #   end
+    # else
+    #   # The imagesdir attribute is blank by default, which means relative image paths are
+    #   # resolved relative to the input document.
+    #   if images_out_dir
+    #     # Absolute path of images_out_dir
+    #   else
+    #     # Use doc_dir
+    #   end
+    # end
+
+    images_out_dir = [parent.attr('docdir'), parent.attr]
+    images_out_dir = images_out_dir ? parent.attr('docdir') + images_out_dir : nil
+    if images_out_dir
       base_dir = nil
       if parent.attr('imagesdir').nil_or_empty?
-        target_dir = output_dir
+        target_dir = images_out_dir
       else
         # When imagesdir attribute is set, every relative path is prefixed with it. So the real target dir shall then be relative to the imagesdir, instead of being relative to document root.
         doc_outdir = parent.attr('outdir') || (document.respond_to?(:options) && document.options[:to_dir])
-        rel_imagesdir = File::join(parent.attr('docdir'), parent.attr('imagesdir'))
+        rel_imagesdir = ::File::join(parent.attr('docdir'), parent.attr('imagesdir'))
         abs_imagesdir = parent.normalize_system_path(rel_imagesdir, doc_outdir)
-        abs_outdir = parent.normalize_system_path(output_dir, base_dir)
+        abs_outdir = parent.normalize_system_path(images_out_dir, base_dir)
         p1 = ::Pathname.new abs_outdir
         p2 = ::Pathname.new abs_imagesdir
         target_dir = p1.relative_path_from(p2).to_s
       end
     else
       base_dir = parent.attr('outdir') || (document.respond_to?(:options) && document.options[:to_dir])
-      output_dir = parent.attr('imagesdir')
+      images_out_dir = parent.attr('imagesdir')
       # since we store images directly to imagesdir, target dir shall be NULL and asciidoctor converters will prefix imagesdir.
       target_dir = "."
     end
 
-    output_dir = parent.normalize_system_path(output_dir, base_dir)
-    return [output_dir, target_dir]
+    images_out_dir = parent.normalize_system_path(images_out_dir, base_dir)
+    return [images_out_dir, target_dir]
   end
 
 end
