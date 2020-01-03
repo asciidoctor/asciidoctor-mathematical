@@ -179,31 +179,24 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     end
   end
 
-  def image_output_and_target_dir(parent)
-    document = parent.document
-
-    output_dir = parent.attr('imagesoutdir')
+  def image_output_and_target_dir(doc)
+    output_dir = doc.attr('imagesoutdir')
     if output_dir
-      base_dir = nil
-      if parent.attr('imagesdir').nil_or_empty?
+      if doc.attr('imagesdir').nil_or_empty?
         target_dir = output_dir
       else
         # When imagesdir attribute is set, every relative path is prefixed with it. So the real target dir shall then be relative to the imagesdir, instead of being relative to document root.
-        doc_outdir = parent.attr('outdir') || (document.respond_to?(:options) && document.options[:to_dir])
-        abs_imagesdir = parent.normalize_system_path(parent.attr('imagesdir'), doc_outdir)
-        abs_outdir = parent.normalize_system_path(output_dir, base_dir)
-        p1 = ::Pathname.new abs_outdir
-        p2 = ::Pathname.new abs_imagesdir
-        target_dir = p1.relative_path_from(p2).to_s
+        abs_imagesdir = ::Pathname.new doc.normalize_system_path(doc.attr('imagesdir'))
+        abs_outdir = ::Pathname.new doc.normalize_system_path(output_dir)
+        target_dir = abs_outdir.relative_path_from(abs_imagesdir).to_s
       end
     else
-      base_dir = parent.attr('outdir') || (document.respond_to?(:options) && document.options[:to_dir])
-      output_dir = parent.attr('imagesdir')
+      output_dir = doc.attr('imagesdir')
       # since we store images directly to imagesdir, target dir shall be NULL and asciidoctor converters will prefix imagesdir.
       target_dir = "."
     end
 
-    output_dir = parent.normalize_system_path(output_dir, base_dir)
+    output_dir = doc.normalize_system_path(output_dir, doc.attr('docdir'))
     return [output_dir, target_dir]
   end
 
