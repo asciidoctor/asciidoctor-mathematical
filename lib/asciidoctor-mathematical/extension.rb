@@ -151,28 +151,39 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     end
 
     source_modified = false
+
     # TODO skip passthroughs in the source (e.g., +stem:[x^2]+)
-    text = text.gsub(stem_rx) {
-      if (m = $~)[0].start_with? '\\'
-        next m[0][1..-1]
-      end
+    if text != nil && text.include? ':'
+      text = text.gsub(stem_rx) {
+        if (m = $~)[0].start_with? '\\'
+          next m[0][1..-1]
+        end
 
-      if (eq_data = m[2].rstrip).empty?
-        next
-      else
-        source_modified = true
-      end
+        if (eq_data = m[2].rstrip).empty?
+          next
+        else
+          source_modified = true
+        end
 
-      eq_data.gsub! '\]', ']'
-      subs = m[1].nil_or_empty? ? (to_html ? [:specialcharacters] : []) : (node.resolve_pass_subs m[1])
-      eq_data = node.apply_subs eq_data, subs unless subs.empty?
-      img_target, img_width, img_height = make_equ_image eq_data, nil, true, mathematical, image_output_dir, image_target_dir, format, inline
-      if inline
-        %(pass:[<span class="steminline"> #{img_target} </span>])
-      else
-        %(image:#{img_target}[width=#{img_width},height=#{img_height}])
-      end
-    } if (text != nil) && (text.include? ':') && ((support_stem_prefix && (text.include? 'stem:')) || (text.include? 'latexmath:') || (text.include? 'asciimath:'))
+        if text.include? 'asciimath:'
+          eq_data = AsciiMath.parse(eq_data).to_latex
+        else if (support_stem_prefix && (text.include? 'stem:')) || (text.include? 'latexmath:')
+          eq_data.gsub! '\]', ']'
+          subs = m[1].nil_or_empty? ? (to_html ? [:specialcharacters] : []) : (node.resolve_pass_subs m[1])
+          eq_data = node.apply_subs eq_data, subs unless subs.empty?
+        else
+          source_modified = false
+          return text
+        end
+          
+        img_target, img_width, img_height = make_equ_image eq_data, nil, true, mathematical, image_output_dir, image_target_dir, format, inline
+        if inline
+          %(pass:[<span class="steminline"> #{img_target} </span>])
+        else
+          %(image:#{img_target}[width=#{img_width},height=#{img_height}])
+        end
+      }
+    end
 
     [text, source_modified]
   end
