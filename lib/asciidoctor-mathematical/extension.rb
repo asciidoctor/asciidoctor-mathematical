@@ -153,7 +153,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     source_modified = false
 
     # TODO skip passthroughs in the source (e.g., +stem:[x^2]+)
-    if text != nil && text.include? ':'
+    if text != nil && (text.include? ':')
       text = text.gsub(stem_rx) {
         if (m = $~)[0].start_with? '\\'
           next m[0][1..-1]
@@ -167,7 +167,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
         if text.include? 'asciimath:'
           eq_data = AsciiMath.parse(eq_data).to_latex
-        else if (support_stem_prefix && (text.include? 'stem:')) || (text.include? 'latexmath:')
+        elsif (support_stem_prefix && (text.include? 'stem:')) || (text.include? 'latexmath:')
           eq_data.gsub! '\]', ']'
           subs = m[1].nil_or_empty? ? (to_html ? [:specialcharacters] : []) : (node.resolve_pass_subs m[1])
           eq_data = node.apply_subs eq_data, subs unless subs.empty?
