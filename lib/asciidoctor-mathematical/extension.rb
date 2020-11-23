@@ -12,6 +12,8 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
   AsciiMathInlineMacroRx = /\\?asciimath:([a-z,]*)\[(.*?[^\\])\]/m
 
   def process document
+    return unless document.attr? 'stem'
+
     format = ((document.attr 'mathematical-format') || 'png').to_sym
     if format != :png and format != :svg
       warn %(Unknown format '#{format}', retreat to 'png')
@@ -30,40 +32,18 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
       ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
     end
 
-    unless (stem_blocks = document.find_by context: :stem).nil_or_empty?
-      stem_blocks.each do |stem|
-        handle_stem_block stem, mathematical, image_output_dir, image_target_dir, format, inline
-      end
+    (document.find_by context: :stem, traverse_documents: true).each do |stem|
+      handle_stem_block stem, mathematical, image_output_dir, image_target_dir, format, inline
     end
 
-    unless (prose_blocks = document.find_by {|b|
+    document.find_by(traverse_documents: true) {|b|
       (b.content_model == :simple && (b.subs.include? :macros)) || b.context == :list_item
-    }).nil_or_empty?
-      prose_blocks.each do |prose|
-        handle_prose_block prose, mathematical, image_output_dir, image_target_dir, format, inline
-      end
+    }.each do |prose|
+      handle_prose_block prose, mathematical, image_output_dir, image_target_dir, format, inline
     end
 
-    # handle table cells of the "asciidoc" type, as suggested by mojavelinux
-    # at asciidoctor/asciidoctor-mathematical#20.
-    unless (table_blocks = document.find_by context: :table).nil_or_empty?
-      table_blocks.each do |table|
-        (table.rows[:body] + table.rows[:foot]).each do |row|
-          row.each do |cell|
-            if cell.style == :asciidoc
-              process cell.inner_document
-            elsif cell.style != :literal
-              handle_nonasciidoc_table_cell cell, mathematical, image_output_dir, image_target_dir, format, inline
-            end
-          end
-        end
-      end
-    end
-
-    unless (sect_blocks = document.find_by content: :section).nil_or_empty?
-      sect_blocks.each do |sect|
-        handle_section_title sect, mathematical, image_output_dir, image_target_dir, format, inline
-      end
+    (document.find_by content: :section).each do |sect|
+      handle_section_title sect, mathematical, image_output_dir, image_target_dir, format, inline
     end
 
     nil
@@ -106,32 +86,26 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
   end
 
   def handle_prose_block(prose, mathematical, image_output_dir, image_target_dir, format, inline)
-    text = prose.context == :list_item ? (prose.instance_variable_get :@text) : (prose.lines * LineFeed)
+    if prose.context == :list_item || prose.context == :table_cell
+      use_text_property = true
+      text = prose.instance_variable_get :@text
+    else
+      text = prose.lines * LineFeed
+    end
     text, source_modified = handle_inline_stem prose, text, mathematical, image_output_dir, image_target_dir, format, inline
     if source_modified
-      if prose.context == :list_item
-        prose.instance_variable_set :@text, text
+      if use_text_property
+        prose.text = text
       else
         prose.lines = text.split LineFeed
       end
     end
   end
 
-  def handle_nonasciidoc_table_cell(cell, mathematical, image_output_dir, image_target_dir, format, inline)
-    text = cell.instance_variable_get :@text
-    text, source_modified = handle_inline_stem cell, text, mathematical, image_output_dir, image_target_dir, format, inline
-    if source_modified
-      cell.instance_variable_set :@text, text
-    end
-  end
-
   def handle_section_title(sect, mathematical, image_output_dir, image_target_dir, format, inline)
     text = sect.instance_variable_get :@title
     text, source_modified = handle_inline_stem sect, text, mathematical, image_output_dir, image_target_dir, format, inline
-    if source_modified
-      sect.instance_variable_set :@title, text
-      sect.remove_instance_variable :@subbed_title
-    end
+    sect.title = text if source_modified
   end
 
   def handle_inline_stem(node, text, mathematical, image_output_dir, image_target_dir, format, inline)
