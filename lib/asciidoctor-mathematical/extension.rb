@@ -12,6 +12,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
   AsciiMathInlineMacroRx = /\\?asciimath:([a-z,]*)\[(.*?[^\\])\]/m
 
   def process document
+    return unless document.attr? 'stem'
     format = ((document.attr 'mathematical-format') || 'png').to_sym
     if format != :png and format != :svg
       warn %(Unknown format '#{format}', retreat to 'png')
@@ -65,6 +66,9 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
         handle_section_title sect, mathematical, image_output_dir, image_target_dir, format, inline
       end
     end
+
+    document.remove_attr 'stem'
+    (document.instance_variable_get :@header_attributes).delete 'stem' rescue nil
 
     nil
   end
