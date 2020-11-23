@@ -7,20 +7,18 @@ autoload :Mathematical, 'mathematical'
 
 class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
   LineFeed = %(\n)
-  StemInlineMacroRx = /\\?(?:stem|latexmath|asciimath):([a-z,]*)\[(.*?[^\\])\]/m
-  LatexmathInlineMacroRx = /\\?latexmath:([a-z,]*)\[(.*?[^\\])\]/m
-  AsciiMathInlineMacroRx = /\\?asciimath:([a-z,]*)\[(.*?[^\\])\]/m
+  StemInlineMacroRx = /\\?(stem|(?:latex|ascii)math):([a-z,]*)\[(.*?[^\\])\]/m
 
   def process document
     format = ((document.attr 'mathematical-format') || 'png').to_sym
-    if format != :png and format != :svg
+    unless format == :png || format == :svg
       warn %(Unknown format '#{format}', retreat to 'png')
       format = :png
     end
     ppi = ((document.attr 'mathematical-ppi') || '300.0').to_f
     ppi = format == :png ? ppi : 72.0
     inline = document.attr 'mathematical-inline'
-    if inline and format == :png
+    if inline && format == :png
       warn 'Can\'t use mathematical-inline together with mathematical-format=png'
     end
     # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
@@ -136,53 +134,40 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
   def handle_inline_stem(node, text, mathematical, image_output_dir, image_target_dir, format, inline)
     document = node.document
-    to_html = document.basebackend? 'html'
-
-    case document.attr 'stem'
-    when 'latexmath'
-      support_stem_prefix = true
-      stem_rx = LatexmathInlineMacroRx
-    when 'asciimath'
-      support_stem_prefix = true
-      stem_rx = AsciiMathInlineMacroRx
-    else
-      support_stem_prefix = false
-      stem_rx = StemInlineMacroRx
-    end
-
     source_modified = false
 
+    return [text, source_modified] unless document.attr? 'stem'
+
+    to_html = document.basebackend? 'html'
+
+    default_equation_type = document.attr('stem').include?('tex') ? :latexmath : :asciimath
+
     # TODO skip passthroughs in the source (e.g., +stem:[x^2]+)
-    if text != nil && (text.include? ':')
-      text = text.gsub(stem_rx) {
+    if text && text.include?(':') && (text.include?('stem:') || text.include?('math:'))
+      text = text.gsub(StemInlineMacroRx) do
         if (m = $~)[0].start_with? '\\'
           next m[0][1..-1]
         end
 
-        if (eq_data = m[2].rstrip).empty?
-          next
-        else
-          source_modified = true
+        next '' if (eq_data = m[3].rstrip).empty?
+
+        equation_type = default_equation_type if (equation_type = m[1].to_sym) == :stem
+        if equation_type == :asciimath
+          eq_data = AsciiMath.parse(eq_data).to_latex
+        else # :latexmath
+          eq_data = eq_data.gsub('\]', ']')
+          subs = m[2].nil_or_empty? ? (to_html ? [:specialcharacters] : []) : (node.resolve_pass_subs m[2])
+          eq_data = node.apply_subs eq_data, subs unless subs.empty?
         end
 
-        if text.include? 'asciimath:'
-          eq_data = AsciiMath.parse(eq_data).to_latex
-        elsif (support_stem_prefix && (text.include? 'stem:')) || (text.include? 'latexmath:')
-          eq_data.gsub! '\]', ']'
-          subs = m[1].nil_or_empty? ? (to_html ? [:specialcharacters] : []) : (node.resolve_pass_subs m[1])
-          eq_data = node.apply_subs eq_data, subs unless subs.empty?
-        else
-          source_modified = false
-          return text
-        end
-          
+        source_modified = true
         img_target, img_width, img_height = make_equ_image eq_data, nil, true, mathematical, image_output_dir, image_target_dir, format, inline
         if inline
-          %(pass:[<span class="steminline"> #{img_target} </span>])
+          %(pass:[<span class="steminline">#{img_target}</span>])
         else
           %(image:#{img_target}[width=#{img_width},height=#{img_height}])
         end
-      }
+      end
     end
 
     [text, source_modified]
