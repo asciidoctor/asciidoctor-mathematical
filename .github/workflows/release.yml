@@ -22,7 +22,6 @@ jobs:
     - name: Configure Bundler
       run: bundle config --local path .bundle/gems
     - name: Install system dependencies
-      if: matrix.os == 'ubuntu-latest'
       run: sudo apt-get install bison flex libffi-dev libxml2-dev libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev fonts-lyx
     - name: Install dependencies
       run: bundle --jobs 3 --retry 3
