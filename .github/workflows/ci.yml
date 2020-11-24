@@ -1,0 +1,42 @@
+name: CI
+on:
+  push:
+    branches: ['**']
+    tags-ignore: ['**']
+  pull_request:
+jobs:
+  activate:
+    if: "!endsWith(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Proceed
+      run: echo ok go
+  build:
+    needs: activate
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        ruby: ['2.3', '2.4', '2.5', '2.6', '2.7']
+        #include:
+        #- os: macos-latest
+        #  ruby: '2.7'
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+    - name: Configure Bundler
+      run: bundle config --local path .bundle/gems
+    - name: Install system dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install bison flex libffi-dev libxml2-dev libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev fonts-lyx
+    #- name: Install system dependencies (macOS)
+    #  if: matrix.os == 'macos-latest'
+    #  run: brew install cairo gdk-pixbuf pango
+    - name: Install dependencies
+      run: bundle --jobs 3 --retry 3
+    - name: Convert sample document
+      run: bundle exec ruby -w $(bundle exec ruby -e 'print File.join Gem.bindir, %q(asciidoctor)') -r asciidoctor-mathematical sample.adoc
