@@ -17,9 +17,9 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         ruby: ['2.3', '2.4', '2.5', '2.6', '2.7']
-        #include:
-        #- os: macos-latest
-        #  ruby: '2.7'
+        include:
+        - os: macos-latest
+          ruby: '2.7'
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
@@ -33,9 +33,9 @@ jobs:
     - name: Install system dependencies (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: sudo apt-get install bison flex libffi-dev libxml2-dev libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev fonts-lyx
-    #- name: Install system dependencies (macOS)
-    #  if: matrix.os == 'macos-latest'
-    #  run: brew install cairo gdk-pixbuf pango
+    - name: Install system dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: brew install cairo gdk-pixbuf pango
     - name: Install dependencies
       run: bundle --jobs 3 --retry 3
     - name: Convert sample document
