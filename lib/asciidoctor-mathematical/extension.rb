@@ -4,7 +4,7 @@ require 'asciidoctor/extensions'
 require 'asciimath'
 
 autoload :Digest, 'digest'
-autoload :Latexmath, 'latexmath'
+autoload :PyCall, 'pycall'
 autoload :Mathematical, 'mathematical'
 
 class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
@@ -29,7 +29,9 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
       warn 'Must use mathematical-inline together with mathematical-format=mathml'
     end
     # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
-    unless format == :mathml
+    if format == :mathml
+      mathematical = PyCall.import_module("docutils.utils.math.latex2mathml")
+    else
       mathematical = ::Mathematical.new format: format, ppi: ppi
     end
     unless inline
@@ -164,7 +166,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
     # TODO: Handle exceptions.
     if format == :mathml
-      return [Latexmath.parse(input).to_mathml, nil, nil]
+      return [mathematical.tex2mathml(equ_data, equ_inline), nil, nil]
     end
 
     # TODO: Handle exceptions.
