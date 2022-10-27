@@ -4,6 +4,7 @@ require 'asciidoctor/extensions'
 require 'asciimath'
 
 autoload :Digest, 'digest'
+autoload :Latexmath, 'latexmath'
 autoload :Mathematical, 'mathematical'
 
 class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
@@ -12,9 +13,9 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
   def process document
     return unless document.attr? 'stem'
-    
+
     format = ((document.attr 'mathematical-format') || 'png').to_sym
-    unless format == :png || format == :svg
+    unless format == :png || format == :svg || format == :mathml
       warn %(Unknown format '#{format}', retreat to 'png')
       format = :png
     end
@@ -24,8 +25,13 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     if inline && format == :png
       warn 'Can\'t use mathematical-inline together with mathematical-format=png'
     end
+    if !inline && format == :mathml
+      warn 'Must use mathematical-inline together with mathematical-format=mathml'
+    end
     # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
-    mathematical = ::Mathematical.new format: format, ppi: ppi
+    unless format == :mathml
+      mathematical = ::Mathematical.new format: format, ppi: ppi
+    end
     unless inline
       image_output_dir, image_target_dir = image_output_and_target_dir document
       ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
@@ -155,6 +161,11 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
   def make_equ_image(equ_data, equ_id, equ_inline, mathematical, image_output_dir, image_target_dir, format, inline)
     input = equ_inline ? %($#{equ_data}$) : %($$#{equ_data}$$)
     input = CGI.unescapeHTML(input) # asciidoctor provides us the HTML-encoded latex
+
+    # TODO: Handle exceptions.
+    if format == :mathml
+      return [Latexmath.parse(input).to_mathml, nil, nil]
+    end
 
     # TODO: Handle exceptions.
     result = mathematical.parse input
