@@ -67,7 +67,8 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
     parent = stem.parent
     if inline
-      stem_image = create_pass_block parent, %{<div class="stemblock"> #{img_target} </div>}, {}
+      stem_image_id = %{ id="#{stem.id}"} if stem.id
+      stem_image = create_pass_block parent, %{<div class="stemblock"#{stem_image_id}> #{img_target} </div>}, {}
       parent.blocks[parent.blocks.index stem] = stem_image
     else
       alt_text = stem.attr 'alt', (equation_type == :latexmath ? %($$#{content}$$) : %(`#{content}`))
