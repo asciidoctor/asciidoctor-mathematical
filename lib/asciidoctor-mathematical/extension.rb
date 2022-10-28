@@ -1,3 +1,4 @@
+require 'cgi'
 require 'pathname'
 require 'asciidoctor/extensions'
 require 'asciimath'
@@ -152,6 +153,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
   def make_equ_image(equ_data, equ_id, equ_inline, mathematical, image_output_dir, image_target_dir, format, inline)
     input = equ_inline ? %($#{equ_data}$) : %($$#{equ_data}$$)
+    input = CGI.unescapeHTML(input) # asciidoctor provides us the HTML-encoded latex
 
     # TODO: Handle exceptions.
     result = mathematical.parse input
