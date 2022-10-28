@@ -1,6 +1,8 @@
+require 'cgi'
 require 'pathname'
 require 'asciidoctor/extensions'
 require 'asciimath'
+require 'open3'
 
 autoload :Digest, 'digest'
 autoload :Mathematical, 'mathematical'
@@ -11,9 +13,9 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
   def process document
     return unless document.attr? 'stem'
-    
+
     format = ((document.attr 'mathematical-format') || 'png').to_sym
-    unless format == :png || format == :svg
+    unless format == :png || format == :svg || format == :mathml
       warn %(Unknown format '#{format}', retreat to 'png')
       format = :png
     end
@@ -23,8 +25,13 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     if inline && format == :png
       warn 'Can\'t use mathematical-inline together with mathematical-format=png'
     end
+    if !inline && format == :mathml
+      warn 'Must use mathematical-inline together with mathematical-format=mathml'
+    end
     # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
-    mathematical = ::Mathematical.new format: format, ppi: ppi
+    unless format == :mathml
+      mathematical = ::Mathematical.new format: format, ppi: ppi
+    end
     unless inline
       image_output_dir, image_target_dir = image_output_and_target_dir document
       ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
@@ -66,7 +73,8 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
     parent = stem.parent
     if inline
-      stem_image = create_pass_block parent, %{<div class="stemblock"> #{img_target} </div>}, {}
+      stem_image_id = %{ id="#{stem.id}"} if stem.id
+      stem_image = create_pass_block parent, %{<div class="stemblock"#{stem_image_id}> #{img_target} </div>}, {}
       parent.blocks[parent.blocks.index stem] = stem_image
     else
       alt_text = stem.attr 'alt', (equation_type == :latexmath ? %($$#{content}$$) : %(`#{content}`))
@@ -152,6 +160,19 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
 
   def make_equ_image(equ_data, equ_id, equ_inline, mathematical, image_output_dir, image_target_dir, format, inline)
     input = equ_inline ? %($#{equ_data}$) : %($$#{equ_data}$$)
+    input = CGI.unescapeHTML(input) # asciidoctor provides us the HTML-encoded latex
+
+    # TODO: Handle exceptions.
+    if format == :mathml
+      stdin, stdout, stderr, t_sub = Open3.popen3("pandoc --mathml -f latex")
+      t_read = Thread.new do |t| stdout.gets(nil) end
+      stdin.puts(input)
+      stdin.close
+      result = t_read.value
+      stdout.close
+      stderr.close
+      return [result.strip.delete_prefix("<p>").delete_suffix("</p>"), nil, nil]
+    end
 
     # TODO: Handle exceptions.
     result = mathematical.parse input
