@@ -56,7 +56,7 @@ If you experience any compilation errors (caused by Mathematical) try running:
 `brew link gettext --force` (you can unlink the libraries later if you want).
 
 #### Ubuntu
-`sudo apt-get -qq -y install bison flex libffi-dev libxml2-dev libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev fonts-lyx cmake`
+`sudo apt-get -qq -y install bison flex libffi-dev libxml2-dev libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev fonts-lyx cmake libwebp-dev libzstd-dev`
 
 #### Fedora 28
 
