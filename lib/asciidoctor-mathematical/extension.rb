@@ -25,13 +25,16 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     end
     # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
     mathematical = ::Mathematical.new format: format, ppi: ppi
+    # Use separate Mathematical instace to render formulas in stem blocks to adjust their size
+    zoom = ((document.attr 'mathematical-zoom') || '1.0').to_f
+    mathematical_blocks = ::Mathematical.new format: format, ppi: ppi, zoom: zoom
     unless inline
       image_output_dir, image_target_dir = image_output_and_target_dir document
       ::Asciidoctor::Helpers.mkdir_p image_output_dir unless ::File.directory? image_output_dir
     end
 
     (document.find_by context: :stem, traverse_documents: true).each do |stem|
-      handle_stem_block stem, mathematical, image_output_dir, image_target_dir, format, inline
+      handle_stem_block stem, mathematical_blocks, image_output_dir, image_target_dir, format, inline
     end
 
     document.find_by(traverse_documents: true) {|b|
