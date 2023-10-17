@@ -19,6 +19,7 @@ These attributes can be set to tweak behaviors of this package:
 | mathematical-format | format of generated images                                            | svg, png            | png           |
 | mathematical-ppi    | ppi of generated images, only valid for png files                     | any positive number | 300.0         |
 | mathematical-inline | if present will inline equations as svg (only useful for HTML output) | true/false          | false         |
+| mathematical-zoom   | adjust size of the svg formulas in stem blocks                        | any positive number | 1.0           |
 
 ## Usage
 `asciidoctor-pdf -r asciidoctor-mathematical -o test.pdf sample.adoc`
