@@ -25,7 +25,7 @@ class MathematicalTreeprocessor < Asciidoctor::Extensions::Treeprocessor
     end
     # The no-args constructor defaults to SVG and standard delimiters ($..$ for inline, $$..$$ for block)
     mathematical = ::Mathematical.new format: format, ppi: ppi
-    # Use separate Mathematical instace to render formulas in stem blocks to adjust their size
+    # Use separate Mathematical instance to render formulas in stem blocks for adjusting their size
     zoom = ((document.attr 'mathematical-zoom') || '1.0').to_f
     mathematical_blocks = ::Mathematical.new format: format, ppi: ppi, zoom: zoom
     unless inline
