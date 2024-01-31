@@ -70,14 +70,13 @@ sudo dnf --setopt=install_weak_deps=False install -y \
   gdk-pixbuf2-devel \
   libffi-devel \
   libxml2-devel \
+  libclerc-devel \
   make \
   lyx-fonts \
   pango-devel \
   redhat-rpm-config \
   ruby-devel
 ```
-
-The mathematical gem cannot currently be installed on Fedora 29.
 
 ### Trouble Shooting
 
